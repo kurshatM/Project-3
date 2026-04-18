@@ -1,0 +1,24 @@
+{
+  "name": "nodeexpressmongorediscache",
+  "version": "1.0.0",
+  "description": "",
+  "main": "script.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "init": "mongoimport -h localhost:27017 -d nodeRedisCacheExample -c Students --file ./data/students.csv --type csv --headerline",
+    "start": "node script.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.2.5"
+  },
+  "dependencies": {
+    "mongodb": "^6.21.0",
+    "redis": "^4.6.13"
+  }
+}

@@ -3,47 +3,87 @@
  * full Create / Read / Update / Delete operations
  * on a Redis Hash that caches a technician profile.
  *
- * Key format : tech:KurshatMuhammet
+ * Key pattern : tech:KurshatMuhammet
  * Data struct  : Redis Hash
  */
 
 import { createClient } from "redis";
+import { MongoClient } from "mongodb";
 
+const MONGO_URL = process.env.MONGO_URL || "mongodb://localhost:27017";
+const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379";
 const KEY = "tech:KurshatMuhammet";
 
 async function main() {
-  const client = createClient(); // localhost:6379 default
+  const client = createClient({ url: REDIS_URL });
+  client.on("error", (err) => console.log("Redis Client Error", err));
+
+  const mongoClient = new MongoClient(MONGO_URL);
 
   try {
-    //Connect to Redis
-    console.log("step 1: connecting to Redis");
+    //connect to MongoDB
+    console.log("Step 0: Connecting to MongoDB");
+    await mongoClient.connect();
+    console.log("   Connected to MongoDB.\n");
+
+    const db = mongoClient.db("fieldflow");
+    const collection = db.collection("technicians");
+
+    //insert or update technician in MongoDB
+    await collection.updateOne(
+      { name: "Kurshat Muhammet" },
+      {
+        $set: {
+          name: "Kurshat Muhammet",
+          phone: "571-829-3810",
+          region: "Fairfax, VA",
+          isAvailable: "true",
+          skills: "HVAC, Electrical",
+        },
+      },
+      { upsert: true }
+    );
+
+    //fetch technician from MongoDB
+    const technician = await collection.findOne({
+      name: "Kurshat Muhammet",
+    });
+
+    if (!technician) {
+      throw new Error("Technician not found in MongoDB.");
+    }
+
+    console.log("   Retrieved from MongoDB:", technician, "\n");
+
+    //connect to Redis
+    console.log("Step 1: connecting to Redis");
     await client.connect();
     console.log("   Connected to Redis successfully.\n");
 
-    //Flush the database for a clean demo
+    //flush the database for a clean demo
     console.log("Step 2: Flushing the database");
     await client.flushDb();
     console.log("   Database flushed.\n");
 
-    //CREATE: HSET the technician profile
+    //CREATE: HSET the technician profile (from MongoDB data)
     console.log("Step 3: Creating technician profile (HSET)");
     const fieldsSet = await client.hSet(KEY, {
-      name: "Kurshat Muhammet",
-      phone: "571-829-3810",
-      region: "Fairfax, VA",
-      isAvailable: "true",
-      skills: "HVAC, Electrical",
+      name: technician.name,
+      phone: technician.phone,
+      region: technician.region,
+      isAvailable: technician.isAvailable,
+      skills: technician.skills,
     });
     console.log(`HSET returned ${fieldsSet} (number of fields added).`);
     console.log(`Key: ${KEY}\n`);
 
     //READ: HGETALL (full profile)
-    console.log("step 4: Reading full profile (HGETALL)");
+    console.log("Step 4: Reading full profile (HGETALL)");
     const fullProfile = await client.hGetAll(KEY);
     console.log("   Profile:", fullProfile, "\n");
 
     //READ: HGET (single field: isAvailable)
-    console.log("step 5: Reading single field: isAvailable (HGET)");
+    console.log("Step 5: Reading single field: isAvailable (HGET)");
     const available = await client.hGet(KEY, "isAvailable");
     console.log(`   isAvailable = "${available}"\n`);
 
@@ -62,7 +102,7 @@ async function main() {
     const updatedProfile = await client.hGetAll(KEY);
     console.log("   Profile:", updatedProfile, "\n");
 
-    //DELETE: remove the skills field (HDEL)
+    // DELETE: remove the skills field (HDEL)
     console.log("Step 9: Deleting skills field (HDEL)");
     const deletedCount = await client.hDel(KEY, "skills");
     console.log(`   HDEL returned ${deletedCount} (fields removed).\n`);
@@ -72,12 +112,12 @@ async function main() {
     const afterFieldDelete = await client.hGetAll(KEY);
     console.log("   Profile:", afterFieldDelete, "\n");
 
-    //DELETE: remove the entire key (DEL)
+    // DELETE: remove the entire key (DEL)
     console.log("Step 11: Deleting entire key (DEL)");
     const keysDeleted = await client.del(KEY);
     console.log(`   DEL returned ${keysDeleted} (keys removed).\n`);
 
-    //READ: make sure key is gone
+    // READ: make sure the key is gone
     console.log("Step 12: Attempting to read deleted key (HGETALL)");
     const afterKeyDelete = await client.hGetAll(KEY);
     console.log("   Result:", afterKeyDelete);
@@ -87,14 +127,20 @@ async function main() {
   } catch (err) {
     console.error("   Error:", err);
   } finally {
-    //quit Redis
-    console.log("Step 13: Closing Redis connection");
+    //quit redis
+    console.log("Step 13: Closing connections");
+
     if (client.isOpen) {
       await client.quit();
-      console.log("   Redis connection closed. Demo complete.");
-    } else {
-      console.log("   Redis connection was not open.");
+      console.log("   Redis connection closed.");
     }
+
+    if (mongoClient) {
+      await mongoClient.close();
+      console.log("   MongoDB connection closed.");
+    }
+
+    console.log("   Demo complete.");
   }
 }
 

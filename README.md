@@ -4,12 +4,13 @@ CS3200 Project 3 · Part 5 (Node Script)
 
 ## Description
 
-A standalone Node.js script that demonstrates full CRUD operations on a Redis Hash. The script caches a technician profile under the key `tech:KurshatMuhammet` and walks through every CRUD step with console output. Based off of FieldFlow (see requirements doc for more info).
+A standalone Node.js script that demonstrates full CRUD operations on a Redis Hash. First it retrieves technician data from MongoDB, then caches that profile in Redis under the key `tech:KurshatMuhammet`, and walks through every CRUD step with console output. Based off of FieldFlow (see requirements doc for more info).
 
 [requirements doc](./CS3200%20Project%203%20Requirements%20and%20UML%20%20Doc..pdf)
 
 ## Prereqs
 - [Node.js](https://nodejs.org/), v18 or later
+- [MongoDB](https://www.mongodb.com/), local instance running on `localhost:27017`
 - [Redis](https://redis.io/), v7 or later
 
 ## Install
@@ -22,6 +23,14 @@ npm install
 brew install redis
 brew services start redis
 ```
+
+## Run MongoDB
+- If Mongo is not already running on localhost:27017:
+    ```bash
+    mkdir -p ~/data/db
+    mongod --dbpath ~/data/db
+    ```
+
 
 ## Run the Script
 ```bash
