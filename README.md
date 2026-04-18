@@ -30,6 +30,7 @@ brew services start redis
     mkdir -p ~/data/db
     mongod --dbpath ~/data/db
     ```
+    - Then open new terminal tab and proceed with steps
 
 
 ## Run the Script
