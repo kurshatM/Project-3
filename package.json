@@ -1,0 +1,17 @@
+{
+  "name": "fieldflow-redis-part5",
+  "version": "1.0.0",
+  "description": "FieldFlow: CS3200 Project 3 Part 5: Redis Hash CRUD demo",
+  "main": "script.js",
+  "scripts": {
+    "start": "node script.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "mongodb": "^7.1.1",
+    "redis": "^4.7.0"
+  }
+}
