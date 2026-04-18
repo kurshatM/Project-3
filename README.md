@@ -1,6 +1,6 @@
 # FieldFlow: Redis Hash CRUD Demo
 
-CS3200 Project 3 · Part 5 (Node Script)
+CS3200 Project 3
 
 ## Description
 
